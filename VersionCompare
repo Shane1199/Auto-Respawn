@@ -1,0 +1,180 @@
+Options:
+	Version: 1.7
+#
+#         W E L C O M E   T O                                  F O U N D   O N :
+#
+#       A U T O   R E S P A W N                   https://www.spigotmc.org/resources/17598/
+#
+#     C r e a t e d   B y :   S h a n e 1 1 9 9
+#
+#      Requires: Skript, RandomSK, & skQuery                 For Minecraft 1.7/1.8
+#
+# Please do not distribute.
+# SUPPORT <-> Skype: theShane1199 <-> https://www.spigotmc.org/threads/119523/
+
+# Check for Updates automatically?
+	updatecheck: true
+
+# Wait how many ticks before respawn? 20 ticks = 1 second. MUST BE AT LEAST 1 TO PREVENT ISSUES.
+	wait: 1
+
+# Require a permission to Automatically Respawn? Permission: ar.auto
+	require-permission: false
+
+# Deduct money on respawn? As a type of punishment for dying. DO NOT USE THE $ SIGN
+	money: false
+	amount: 25
+	dollarsignbefore: true
+	message: &c&lYou Died! &fPenalty -#It says the money amount
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # #                     # # #                     # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # ################################################# #
+# # # # C A U T I O N : DO NOT EDIT ANYTHING BELOW!!! # # # #
+    # ################################################# #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # #                     # # #                     # #
+
+
+
+on death of player:
+	if {@require-permission} is true:
+		player has permission "ar.auto":
+			if {autorespawn::auto} is true:
+				if {autorespawn::toggle::%player%} is not false:
+					wait {@wait} tick
+					force respawn victim
+					if {@money} is true:
+						remove {@amount} from the player's account
+						if {@dollarsignbefore} is true:
+							message "{@message}${@amount}" to player
+						else:
+							message "{@message}{@amount}$" to player
+	if {@require-permission} is false:
+		if {autorespawn::auto} is true:
+			if {autorespawn::toggle::%player%} is not false:
+				wait {@wait} tick
+				force respawn victim
+				if {@money} is true:
+					remove {@amount} from the player's account
+					if {@dollarsignbefore} is true:
+						message "{@message}${@amount}" to player
+					else:
+						message "{@message}{@amount}$" to player
+on join:
+	if {@updatecheck} is true:
+		player has permission "ar.update" or "ar.*":
+			if text from "https://raw.githubusercontent.com/Shane1199/Auto-Respawn/master/Version.txt" is not "{@Version}":
+				wait 2 ticks
+				message "&cAR > &c&lA new update is ready! Go to:"
+				message "&ehttps://www.spigotmc.org/resources/17598/updates"
+command /autorespawn [<text="">]:
+	description: Auto Respawn Commands
+	usage: &6/ar <help/reload/on/off>
+	aliases: /ar
+	trigger:
+		if arg 1 is "" or "help":
+			player has permission "ar.help" or "ar.*":
+				message "&6&m------------------------------------------------"
+				message "&c&lAuto Respawn &e&l{@Version} &f&l- By Shane1199"
+				if {@updatecheck} is true:
+					message "&6Update Checker: &aEnabled"
+					if text from "https://raw.githubusercontent.com/Shane1199/Auto-Respawn/master/Version.txt" is not "{@Version}":
+						message "&cAR > &c&lA new update is ready!&r&l Go to:"
+						message "&ehttps://www.spigotmc.org/resources/17598/updates"
+				if {@updatecheck} is false:
+					message "&6Update Checker: &cDisabled"
+				message "&eBelow is a list of all Auto Respawn Commands:"
+				message "&6/ar: &f(/autorespawn)&r Is this command"
+				message "&6/ar reload: &f(/ar r)&r Reloads the plugin"
+				message "&6/ar <on/off>:&r Turns Auto Respawn on/off"
+				message "&eBelow is a list of all Auto Respawn Permissions:"
+				message "&6ao.* &rAll Access"
+				message "&6&m------------------------------------------------"
+		if arg 1 is "reload" or "r":
+			player has permission "ar.reload" or "ar.*":
+				execute command "/skript reload Auto Respawn.sk"
+				message "&eAuto Respawn has been reloaded."
+		if arg 1 is "on" or "enable":
+			player has permission "ar.control" or "ar.*":
+				set {autorespawn::auto} to true
+				message "&aAuto Respawn has been enabled."
+		if arg 1 is "off" or "disable":
+			player has permission "ar.control" or "ar.*":
+				set {autorespawn::auto} to false
+				message "&cAuto Respawn has been disabled."
+command /respawn:
+	description: Toggle Auto Respawn
+	usage: &6/{@command}
+	permission: ar.toggle
+	trigger:
+		if {autorespawn::toggle::%player%} is not set:
+			set {autorespawn::auto} to false
+			message "&cAuto Respawn has been disabled."
+		if {autorespawn::toggle::%player%} is true:
+			set {autorespawn::auto} to false
+			message "&cAuto Respawn has been disabled."
+		if {autorespawn::toggle::%player%} is false:
+			set {autorespawn::auto} to true
+			message "&aAuto Respawn has been enabled."
+on tab completer for "/autorespawn":
+	if argument at 1 is "":
+		add "help" to completions
+		add "reload" to completions
+		add "on" to completions
+		add "off" to completions
+on tab completer for "/respawn":
+	if argument at 1 is "":
+		add "on" to completions
+		add "off" to completions
