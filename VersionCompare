@@ -1,5 +1,5 @@
 Options:
-	Version: 1.7
+	Version: 1.8
 #
 #         W E L C O M E   T O                                  F O U N D   O N :
 #
@@ -12,20 +12,8 @@ Options:
 # Please do not distribute.
 # SUPPORT <-> Skype: theShane1199 <-> https://www.spigotmc.org/threads/119523/
 
-# Check for Updates automatically?
-	updatecheck: true
-
 # Wait how many ticks before respawn? 20 ticks = 1 second. MUST BE AT LEAST 1 TO PREVENT ISSUES.
 	wait: 1
-
-# Require a permission to Automatically Respawn? Permission: ar.auto
-	require-permission: false
-
-# Deduct money on respawn? As a type of punishment for dying. DO NOT USE THE $ SIGN
-	money: false
-	amount: 25
-	dollarsignbefore: true
-	message: &c&lYou Died! &fPenalty -#It says the money amount
 
 
 
@@ -88,37 +76,84 @@ Options:
 
 
 
-on death of player:
-	if {@require-permission} is true:
-		player has permission "ar.auto":
-			if {autorespawn::auto} is true:
-				if {autorespawn::toggle::%player%} is not false:
-					wait {@wait} tick
-					force respawn victim
-					if {@money} is true:
-						remove {@amount} from the player's account
-						if {@dollarsignbefore} is true:
-							message "{@message}${@amount}" to player
-						else:
-							message "{@message}{@amount}$" to player
-	if {@require-permission} is false:
-		if {autorespawn::auto} is true:
-			if {autorespawn::toggle::%player%} is not false:
-				wait {@wait} tick
-				force respawn victim
-				if {@money} is true:
-					remove {@amount} from the player's account
-					if {@dollarsignbefore} is true:
-						message "{@message}${@amount}" to player
-					else:
-						message "{@message}{@amount}$" to player
+on load:
+	send "Auto Respawn is Loading..." to console
+	if folder "plugins/AutoRespawn/" doesn't exists:
+		create folder "plugins/AutoRespawn"	
+	if file "plugins/AutoRespawn/messages.yml" doesn't exists:
+		create file "plugins/AutoRespawn/messages.yml"	
+		wf "  ## Formatting/Colors found here: http://minecraft.gamepedia.com/Formatting_codes" to "plugins/AutoRespawn/messages.yml"	
+		wf "  ## The player is said after moneymessage" to "plugins/AutoRespawn/messages.yml"	
+		wf "  ## SUPPORT <-> Skype: theShane1199 <-> https://www.spigotmc.org/threads/119523/" to "plugins/AutoRespawn/messages.yml"	
+		wf " " to "plugins/AutoRespawn/messages.yml"	
+		wf "prefix: '&cAR > '" to "plugins/AutoRespawn/messages.yml"	
+		wf "enabled: '&aAuto Respawn has been enabled.'" to "plugins/AutoRespawn/messages.yml"	
+		wf "disabled: '&cAuto Respawn has been disabled.'" to "plugins/AutoRespawn/messages.yml"	
+		wf "message: '&c&lYou Died! &fPenalty -'" to "plugins/AutoRespawn/messages.yml"	
+		wf "reload: '&eAuto Respawn has been reloaded.'" to "plugins/AutoRespawn/messages.yml"	
+	set {ar::messages::prefix} to colored value "prefix" get of "plugins/AutoRespawn/messages.yml"	
+	set {ar::messages::enabled} to colored value "enabled" get of "plugins/AutoRespawn/messages.yml"	
+	set {ar::messages::disabled} to colored value "disabled" get of "plugins/AutoRespawn/messages.yml"	
+	set {ar::messages::moneymessage} to colored value "moneymessage" get of "plugins/AutoRespawn/messages.yml"	
+	set {ar::messages::reload} to colored value "locationcolor" get of "plugins/AutoRespawn/messages.yml"	
+	if file "plugins/AutoRespawn/config.yml" doesn't exists:
+		create file "plugins/AutoRespawn/config.yml"
+		wf "  ## Formatting/Colors found here: http://minecraft.gamepedia.com/Formatting_codes" to "plugins/AutoRespawn/config.yml"	
+		wf "  ## SUPPORT <-> Skype: theShane1199 <-> https://www.spigotmc.org/threads/119523/" to "plugins/AutoRespawn/config.yml"	
+		wf " " to "plugins/AutoRespawn/config.yml"	
+		wf "  ## Check for Updates automatically?" to "plugins/AutoRespawn/config.yml"	
+		wf "checkforupdates: true" to "plugins/AutoRespawn/config.yml"
+		wf "  ## Check for Updates automatically?" to "plugins/AutoRespawn/config.yml"	
+		wf "  ## Require a permission to Automatically Respawn? Permission: ar.auto" to "plugins/AutoRespawn/config.yml"	
+		wf "permission: false" to "plugins/AutoRespawn/config.yml"
+		wf "  ## Deduct money on respawn? As a type of punishment for dying. DO NOT USE THE $ SIGN" to "plugins/AutoRespawn/config.yml"	
+		wf "money: false" to "plugins/AutoRespawn/config.yml"
+		wf "amount: 25" to "plugins/AutoRespawn/config.yml"
+		wf "dollarsignbefore: true" to "plugins/AutoRespawn/config.yml"
+	set {ar::config::checkforupdates} to colored value "checkforupdates" get of "plugins/AutoRespawn/config.yml"
+	set {ar::config::permission} to colored value "permission" get of "plugins/AutoRespawn/config.yml"
+	set {ar::config::money} to colored value "money" get of "plugins/AutoRespawn/config.yml"
+	set {ar::config::amount} to colored value "amount" get of "plugins/AutoRespawn/config.yml"
+	set {ar::config::dollarsignbefore} to colored value "dollarsignbefore" get of "plugins/AutoRespawn/config.yml"
+	send "Skript %skript version%, skQuery %skquery version%, WildSkript %wildskript version%" to console
+	if {ar::config::checkforupdates} is true:
+		if text from "https://raw.githubusercontent.com/Shane1199/Auto-Respawn/master/Version.txt" is not "{@Version}":
+			message "WARN A new Auto Respawn update is ready! Go to:" to console
+			message "https://www.spigotmc.org/resources/17598/updates" to console
+	send "Auto Respawn {@Version} - By Shane1199 - Loaded Successfully" to console
+on unload:
+	send "Auto Respawn Stopped" to console
 on join:
-	if {@updatecheck} is true:
+	if {ar::config::checkforupdates} is true:
 		player has permission "ar.update" or "ar.*":
 			if text from "https://raw.githubusercontent.com/Shane1199/Auto-Respawn/master/Version.txt" is not "{@Version}":
 				wait 2 ticks
-				message "&cAR > &c&lA new update is ready! Go to:"
-				message "&ehttps://www.spigotmc.org/resources/17598/updates"
+				message "%{ar::messages::prefix}%&c&lA new update is ready! Go to:" to player
+				message "&ehttps://www.spigotmc.org/resources/17598/updates" to player
+on death of player:
+	if {ar::config::permission} is true:
+		player has permission "ar.auto":
+			if {autorespawn::auto} is true:
+				if {autorespawn::toggle::%player%} is not false:
+					wait 2 ticks
+					force respawn victim
+					if {ar::config::money} is true:
+						remove {ar::config::amount} from the player's account
+						if {ar::config::dollarsignbefore} is true:
+							message "%{ar::messages::moneymessage}%${ar::config::amount}" to player
+						else:
+							message "%{ar::messages::moneymessage}%{ar::config::amount}$" to player
+	if {ar::config::permission} is false:
+		if {autorespawn::auto} is true:
+			if {autorespawn::toggle::%player%} is not false:
+				wait 2 ticks
+				force respawn victim
+				if {ar::config::money} is true:
+					remove {ar::config::amount} from the player's account
+					if {ar::config::dollarsignbefore} is true:
+						message "%{ar::messages::moneymessage}%${ar::config::amount}" to player
+					else:
+						message "%{ar::messages::moneymessage}%{ar::config::amount}$" to player
 command /autorespawn [<text="">]:
 	description: Auto Respawn Commands
 	usage: &6/ar <help/reload/on/off>
@@ -128,53 +163,48 @@ command /autorespawn [<text="">]:
 			player has permission "ar.help" or "ar.*":
 				message "&6&m------------------------------------------------"
 				message "&c&lAuto Respawn &e&l{@Version} &f&l- By Shane1199"
-				if {@updatecheck} is true:
-					message "&6Update Checker: &aEnabled"
-					if text from "https://raw.githubusercontent.com/Shane1199/Auto-Respawn/master/Version.txt" is not "{@Version}":
-						message "&cAR > &c&lA new update is ready!&r&l Go to:"
-						message "&ehttps://www.spigotmc.org/resources/17598/updates"
-				if {@updatecheck} is false:
-					message "&6Update Checker: &cDisabled"
-				message "&eBelow is a list of all Auto Respawn Commands:"
+				message "&eCommands:"
 				message "&6/ar: &f(/autorespawn)&r Is this command"
 				message "&6/ar reload: &f(/ar r)&r Reloads the plugin"
 				message "&6/ar <on/off>:&r Turns Auto Respawn on/off"
-				message "&eBelow is a list of all Auto Respawn Permissions:"
-				message "&6ao.* &rAll Access"
+				message "&6/respawn:&r Player turns their Auto Respawn on/off"
+				message "&ePermissions:"
+				message "&6ar.* &rAll Access"
+				message "&6ar.* &rAll Access"
+				message "&6ar.* &rAll Access"
+				message "&6ar.* &rAll Access"
+				message "&6ar.* &rAll Access"
+				message "&6ar.* &rAll Access"
+				message "&6ar.* &rAll Access"
 				message "&6&m------------------------------------------------"
 		if arg 1 is "reload" or "r":
 			player has permission "ar.reload" or "ar.*":
 				execute command "/skript reload Auto Respawn.sk"
-				message "&eAuto Respawn has been reloaded."
+				message "%{ar::messages::reload}%"
 		if arg 1 is "on" or "enable":
 			player has permission "ar.control" or "ar.*":
 				set {autorespawn::auto} to true
-				message "&aAuto Respawn has been enabled."
+				message "%{ar::messages::enabled}%"
 		if arg 1 is "off" or "disable":
 			player has permission "ar.control" or "ar.*":
 				set {autorespawn::auto} to false
-				message "&cAuto Respawn has been disabled."
+				message "%{ar::messages::disabled}%"
 command /respawn:
 	description: Toggle Auto Respawn
-	usage: &6/{@command}
 	permission: ar.toggle
 	trigger:
 		if {autorespawn::toggle::%player%} is not set:
 			set {autorespawn::auto} to false
-			message "&cAuto Respawn has been disabled."
+			message "%{ar::messages::disabled}%"
 		if {autorespawn::toggle::%player%} is true:
 			set {autorespawn::auto} to false
-			message "&cAuto Respawn has been disabled."
+			message "%{ar::messages::disabled}%"
 		if {autorespawn::toggle::%player%} is false:
 			set {autorespawn::auto} to true
-			message "&aAuto Respawn has been enabled."
+			message "%{ar::messages::enabled}%"
 on tab completer for "/autorespawn":
 	if argument at 1 is "":
 		add "help" to completions
 		add "reload" to completions
-		add "on" to completions
-		add "off" to completions
-on tab completer for "/respawn":
-	if argument at 1 is "":
 		add "on" to completions
 		add "off" to completions
